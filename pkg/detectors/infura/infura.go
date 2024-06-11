@@ -44,23 +44,26 @@ func (s Scanner) FromData(ctx context.Context, verify bool, data []byte) (result
 		resMatch := strings.TrimSpace(match[1])
 
 		s1 := detectors.Result{
-			DetectorType:       detectorspb.DetectorType_Infura,
-			Raw:                []byte(resMatch),
-			VerificationStatus: detectors.VerificationFailure,
+			DetectorType: detectorspb.DetectorType_Infura,
+			Raw:          []byte(resMatch),
 		}
 
 		if verify {
 			payload := strings.NewReader(`{"jsonrpc":"2.0","method":"eth_blockNumber","params":[],"id":1}`)
 			req, err := http.NewRequestWithContext(ctx, "POST", "https://mainnet.infura.io/v3/"+resMatch, payload)
 			if err != nil {
+				s1.SetVerificationError(err, resMatch)
 				continue
 			}
 			req.Header.Add("Content-Type", "application/json")
 			res, err := client.Do(req)
-			if err == nil {
+			if err != nil {
+				s1.SetVerificationError(err, resMatch)
+			} else {
 				defer res.Body.Close()
 				bodyBytes, err := io.ReadAll(res.Body)
 				if err != nil {
+					s1.SetVerificationError(err, resMatch)
 					continue
 				}
 				body := string(bodyBytes)
