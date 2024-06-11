@@ -15,6 +15,34 @@ import (
 	"github.com/trufflesecurity/trufflehog/v3/pkg/sources"
 )
 
+type VerificationStatus int
+
+const (
+	VerificationUnknown VerificationStatus = iota
+	VerificationSuccess
+	VerificationFailure
+)
+
+// Converts a `VerificationStatus` to `nil` or a `bool`:
+//
+// * `VerificationUnknown` -> `nil`
+//
+// * `VerificationSuccess` -> `true`
+//
+// * `VerificationFailure` -> `false`
+func (v VerificationStatus) ToSucceeded() interface{} {
+	switch v {
+	case VerificationUnknown:
+		return nil
+	case VerificationSuccess:
+		return true
+	case VerificationFailure:
+		return false
+	default:
+		return nil
+	}
+}
+
 // Detector defines an interface for scanning for and verifying secrets.
 type Detector interface {
 	// FromData will scan bytes for results, and optionally verify them.
@@ -75,7 +103,8 @@ type Result struct {
 
 	// This field should only be populated if the verification process itself failed in a way that provides no
 	// information about the verification status of the candidate secret, such as if the verification request timed out.
-	verificationError error
+	verificationError  error
+	VerificationStatus VerificationStatus
 }
 
 // SetVerificationError is the only way to set a verification error. Any sensitive values should be passed-in as secrets to be redacted.
