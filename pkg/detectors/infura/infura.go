@@ -2,10 +2,11 @@ package infura
 
 import (
 	"context"
-	regexp "github.com/wasilibs/go-re2"
 	"io"
 	"net/http"
 	"strings"
+
+	regexp "github.com/wasilibs/go-re2"
 
 	"github.com/trufflesecurity/trufflehog/v3/pkg/common"
 	"github.com/trufflesecurity/trufflehog/v3/pkg/detectors"
@@ -43,8 +44,9 @@ func (s Scanner) FromData(ctx context.Context, verify bool, data []byte) (result
 		resMatch := strings.TrimSpace(match[1])
 
 		s1 := detectors.Result{
-			DetectorType: detectorspb.DetectorType_Infura,
-			Raw:          []byte(resMatch),
+			DetectorType:       detectorspb.DetectorType_Infura,
+			Raw:                []byte(resMatch),
+			VerificationStatus: detectors.VerificationFailure,
 		}
 
 		if verify {
@@ -62,6 +64,7 @@ func (s Scanner) FromData(ctx context.Context, verify bool, data []byte) (result
 					continue
 				}
 				body := string(bodyBytes)
+				s1.VerificationStatus = detectors.VerificationSuccess
 				if strings.Contains(body, `"result"`) {
 					s1.Verified = true
 				}
