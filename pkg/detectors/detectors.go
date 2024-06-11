@@ -111,7 +111,11 @@ type Result struct {
 func (r *Result) SetVerificationError(err error, secrets ...string) {
 	if err != nil {
 		r.verificationError = redactSecrets(err, secrets...)
+		r.VerificationStatus = VerificationFailure
 	}
+	// Note: VerificationStatus should not be set to success in the else case
+	// here since there may be several ways for errors to occur in a detector,
+	// and this method is ignorant of that
 }
 
 // Public accessors for the fields could also be provided if needed.
