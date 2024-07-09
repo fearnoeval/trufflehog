@@ -2,10 +2,11 @@ package infura
 
 import (
 	"context"
-	regexp "github.com/wasilibs/go-re2"
 	"io"
 	"net/http"
 	"strings"
+
+	regexp "github.com/wasilibs/go-re2"
 
 	"github.com/trufflesecurity/trufflehog/v3/pkg/common"
 	"github.com/trufflesecurity/trufflehog/v3/pkg/detectors"
@@ -51,17 +52,22 @@ func (s Scanner) FromData(ctx context.Context, verify bool, data []byte) (result
 			payload := strings.NewReader(`{"jsonrpc":"2.0","method":"eth_blockNumber","params":[],"id":1}`)
 			req, err := http.NewRequestWithContext(ctx, "POST", "https://mainnet.infura.io/v3/"+resMatch, payload)
 			if err != nil {
+				s1.SetVerificationError(err, resMatch)
 				continue
 			}
 			req.Header.Add("Content-Type", "application/json")
 			res, err := client.Do(req)
-			if err == nil {
+			if err != nil {
+				s1.SetVerificationError(err, resMatch)
+			} else {
 				defer res.Body.Close()
 				bodyBytes, err := io.ReadAll(res.Body)
 				if err != nil {
+					s1.SetVerificationError(err, resMatch)
 					continue
 				}
 				body := string(bodyBytes)
+				s1.VerificationStatus = detectors.VerificationSuccess
 				if strings.Contains(body, `"result"`) {
 					s1.Verified = true
 				}

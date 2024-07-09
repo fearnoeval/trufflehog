@@ -9,6 +9,32 @@ import (
 	regexp "github.com/wasilibs/go-re2"
 )
 
+func TestVerificationStatusConversion(t *testing.T) {
+	tests := []struct {
+		input    VerificationStatus
+		expected interface{}
+	}{
+		{
+			input:    VerificationUnknown,
+			expected: nil,
+		},
+		{
+			input:    VerificationSuccess,
+			expected: true,
+		},
+		{
+			input:    VerificationFailure,
+			expected: false,
+		},
+	}
+	for _, tt := range tests {
+		actual := tt.input.ToSucceeded()
+		if actual != tt.expected {
+			t.Errorf("VerificationStatus: got: %v want %v", actual, tt.expected)
+		}
+	}
+}
+
 func TestPrefixRegex(t *testing.T) {
 	tests := []struct {
 		keywords []string
